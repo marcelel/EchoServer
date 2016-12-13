@@ -11,12 +11,13 @@ public class EchoServer {
     private Socket socket = null;
     private PrintWriter printWriter = null;
     private BufferedReader bufferedReader = null;
+    private String id = null;
 
     public EchoServer(){
         findPassword();
     }
 
-    public void connect(){
+    private void connect(){
         try {
             socket = new Socket("szymon.ia.agh.edu.pl", 3000);
             printWriter = new PrintWriter(socket.getOutputStream(), true);
@@ -45,7 +46,6 @@ public class EchoServer {
                 message = "LOGIN szymon;" + password;
                 connect();
                 printWriter.println(message);
-                printWriter.flush();
                 try {
                     check = bufferedReader.readLine();
                 } catch (IOException e) {
@@ -53,7 +53,7 @@ public class EchoServer {
                 }
                 if (!check.equals("false")){
                     try{
-                        PrintWriter writer = new PrintWriter("forrectPassword.txt", "UTF-8");
+                        PrintWriter writer = new PrintWriter("correctPassword.txt", "UTF-8");
                         writer.println(password);
                         writer.close();
                     } catch (IOException e) {
@@ -64,5 +64,60 @@ public class EchoServer {
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
+    }
+
+    public String login() {
+        connect();
+        File file = new File("correctPassword.txt");
+        try {
+            Scanner in = new Scanner(file);
+            String message = "LOGIN szymon;" + in.nextLine();
+            printWriter.println(message);
+            try {
+                id = bufferedReader.readLine();
+            } catch (IOException e) {
+                return "Cannot read line from BufferedReader";
+            }
+            return id;
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            return "Cannot open file with password";
+        }
+    }
+
+    public String logout() {
+        connect();
+        printWriter.println("LOGOUT " + id);
+        String message;
+        try {
+            message = bufferedReader.readLine();
+        } catch (IOException e) {
+            message = "Cannot read line from BufferedReader";
+        }
+        return message;
+    }
+
+    public String ls() {
+        connect();
+        printWriter.println("LS " + id);
+        String message;
+        try {
+            message = bufferedReader.readLine();
+        } catch (IOException e) {
+            message = "Cannot read line from BufferedReader";
+        }
+        return message;
+    }
+
+    public String get(String filename) {
+        connect();
+        printWriter.println("GET " + id + " " + filename);
+        String message;
+        try {
+            message = bufferedReader.readLine();
+        } catch (IOException e) {
+            message = "Cannot read line from BufferedReader";
+        }
+        return message;
     }
 }
